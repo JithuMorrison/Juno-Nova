@@ -8,6 +8,7 @@ from scipy.io.wavfile import write
 import tempfile
 import os
 import subprocess
+import pyautogui
 
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
@@ -81,7 +82,7 @@ def processcommand(c):
                     break
         if not found:
             speak("Sorry, I couldn't find that.")
-    elif "exit" in c.lower() or "quit" in c.lower():
+    elif "exit" in c.lower() or "quit" in c.lower() or "accept" in c.lower():
         speak("Goodbye Boss!")
         exit()
     else:
@@ -116,6 +117,31 @@ if __name__ == "__main__":
                         v=0
                         command = ""
                         speak("Yes Boss, Done")
+                    elif(command1.lower() == "type"):
+                        speak("Typing mode activated. Say 'stop typing' to exit.")
+                        while True:
+                            try:
+                                audio_path = record_audio(duration=5)
+                                with sr.AudioFile(audio_path) as source:
+                                    audio = recognizer.record(source)
+                                    typed_text = recognizer.recognize_google(audio)
+                                    print("You said:", typed_text)
+
+                                    if "stop typing" in typed_text.lower():
+                                        speak("Typing mode deactivated.")
+                                        break
+                                    
+                                    if "enter" in typed_text.lower():
+                                        pyautogui.press("enter")
+
+                                    pyautogui.write(typed_text, interval=0.05)
+
+                                os.remove(audio_path)
+
+                            except sr.UnknownValueError:
+                                print("")
+                            except Exception as e:
+                                print("Error:", e)
                     else:
                         processcommand(command1)
             else:
