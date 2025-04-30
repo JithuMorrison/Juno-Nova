@@ -10,6 +10,13 @@ import os
 import subprocess
 import pyautogui
 import time
+from selenium import webdriver
+from selenium.webdriver.edge.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+
+driver = None
+browser_opened = False
 
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
@@ -42,9 +49,46 @@ def processcommand(c):
         today = datetime.now().strftime("%A, %d %B %Y")
         speak(f"Today is {today}")
     elif "search for" in c.lower():
+        global driver, browser_opened
         query = c.lower().split("search for", 1)[1]
         speak(f"Searching for {query}")
-        webbrowser.open(f"https://www.google.com/search?q={query.strip()}")
+        if not browser_opened:
+            options = Options()
+            options.add_argument("--start-maximized")
+            options.add_argument("--disable-blink-features=AutomationControlled")
+            options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            options.add_experimental_option('useAutomationExtension', False)
+            options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36")
+            driver = webdriver.Edge(options=options)
+            browser_opened = True
+        driver.execute_script(f"window.location = 'https://www.google.com/search?q={query.strip()}'")
+    elif "click the first link" in c.lower() and browser_opened and driver:
+        try:
+            results = driver.find_elements(By.CSS_SELECTOR, "a h3")
+            if results:
+                first_result = results[0]
+                driver.execute_script("arguments[0].scrollIntoView({ behavior: 'smooth', block: 'center' });", first_result)
+                time.sleep(0.5)
+                actions = ActionChains(driver)
+                actions.move_to_element(first_result).pause(0.5)  # Human-like pause
+                actions.click().perform()
+            speak("Clicked the first link.")
+        except Exception as e:
+            speak("Sorry, I couldn't click the link.")
+    elif "go back" in c.lower() and browser_opened and driver:
+        try:
+            driver.back()
+            speak("Went back to the previous page.")
+        except Exception as e:
+            speak("Sorry, I couldn't go back.")
+    elif "close browser" in c.lower() and browser_opened and driver:
+        try:
+            driver.quit()
+            browser_opened = False
+            driver = None
+            speak("Closed the browser.")
+        except Exception as e:
+            speak("Sorry, I couldn't close the browser.")
     elif "search youtube for" in c.lower():
         query = c.lower().split("search youtube for", 1)[1]
         speak(f"Searching YouTube for {query}")
