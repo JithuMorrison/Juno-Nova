@@ -9,6 +9,7 @@ import tempfile
 import os
 import subprocess
 import pyautogui
+import time
 
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
@@ -82,6 +83,14 @@ def processcommand(c):
                     break
         if not found:
             speak("Sorry, I couldn't find that.")
+    elif "scroll down" in c.lower():
+        for _ in range(10):
+            pyautogui.scroll(-50)
+            time.sleep(0.1)
+    elif "scroll up" in c.lower():
+        for _ in range(10):
+            pyautogui.scroll(50)
+            time.sleep(0.1)
     elif "exit" in c.lower() or "quit" in c.lower() or "accept" in c.lower():
         speak("Goodbye Boss!")
         exit()
