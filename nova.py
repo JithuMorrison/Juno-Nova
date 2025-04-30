@@ -17,6 +17,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 driver = None
 browser_opened = False
+screen_reader_process = None
+screen_capturer_process = None
 
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
@@ -26,6 +28,7 @@ def speak(text):
     engine.runAndWait()
 
 def processcommand(c):
+    global screen_reader_process, screen_capturer_process
     if "play music" in c.lower():
         speak("Playing your favorite music.")
         webbrowser.open("https://open.spotify.com")  # or local folder
@@ -103,6 +106,32 @@ def processcommand(c):
             "I told my AI it was being replaced — now it’s in denial."
         ]
         speak(random.choice(jokes))
+    elif "open screen reader" in c.lower():
+        if screen_reader_process is None:
+            screen_reader_process = subprocess.Popen(["python", "Screenreader.py"])
+            speak("Screen reader opened.")
+        else:
+            speak("Screen reader is already running.")
+    elif "close screen reader" in c.lower():
+        if screen_reader_process:
+            screen_reader_process.terminate()
+            screen_reader_process = None
+            speak("Screen reader closed.")
+        else:
+            speak("No screen reader is running.")
+    elif "open screen capture" in c.lower():
+        if screen_capturer_process is None:
+            screen_capturer_process = subprocess.Popen(["python", "ScreenCapturer.py"])
+            speak("Screen capturer opened.")
+        else:
+            speak("Screen capturer is already running.")
+    elif "close screen capture" in c.lower():
+        if screen_capturer_process:
+            screen_capturer_process.terminate()
+            screen_capturer_process = None
+            speak("Screen capturer closed.")
+        else:
+            speak("No screen capturer is running.")
     elif "open" in c.lower():
         found = False
         for name, url in dicts.website_links.items():
